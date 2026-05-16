@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finanzas Semanales</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:       #7c3aed;
+      --primary-h:     #6d28d9;
+      --primary-light: #ede9fe;
+      --primary-text:  #5b21b6;
+      --success:       #059669;
+      --success-light: #d1fae5;
+      --warning:       #d97706;
+      --warning-light: #fef3c7;
+      --danger:        #dc2626;
+      --danger-light:  #fee2e2;
+      --gray:          #6b7280;
+      --gray-light:    #f3f4f6;
+      --border:        #e5e7eb;
+      --text:          #111827;
+      --text-muted:    #6b7280;
+      --bg:            #f5f3ff;
+      --surface:       #ffffff;
+      --radius:        12px;
+      --shadow:        0 2px 8px rgba(0,0,0,.08);
+      --shadow-lg:     0 8px 30px rgba(124,58,237,.13);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px 16px 72px;
+    }
+
+    .container { max-width: 1120px; margin: 0 auto; }
+
+    /* ── Language toggle ── */
+    .header-top {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 4px;
+    }
+    .btn-lang {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: border-color .15s, color .15s, background .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-lang:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 20px 0 34px;
+    }
+    .hdr-emoji { font-size: 2.8rem; display: block; margin-bottom: 12px; }
+    header h1 {
+      font-size: clamp(1.7rem, 4vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+    header p { color: var(--text-muted); font-size: .93rem; }
+
+    /* ── Stats ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .stat {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .stat-ico {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .ico-v { background: var(--primary-light); }
+    .ico-g { background: var(--gray-light); }
+    .ico-y { background: var(--warning-light); }
+    .ico-s { background: var(--success-light); }
+    .stat-lbl {
+      font-size: .7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--text-muted); margin-bottom: 4px;
+    }
+    .stat-val { font-size: 1.3rem; font-weight: 800; color: var(--text); }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .toolbar-left h2 { font-size: 1rem; font-weight: 700; }
+    .toolbar-left small { font-size: .76rem; color: var(--text-muted); }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 9px 16px;
+      border: none; border-radius: 8px;
+      font-size: .84rem; font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, transform .1s, box-shadow .15s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-add  { background: var(--primary); color: #fff; }
+    .btn-add:hover  { background: var(--primary-h); box-shadow: 0 4px 14px rgba(124,58,237,.35); }
+    .btn-save { background: var(--success); color: #fff; }
+    .btn-save:hover { background: #047857; box-shadow: 0 4px 14px rgba(5,150,105,.3); }
+    .btn-reset { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); }
+    .btn-reset:hover { background: var(--danger-light); }
+
+    /* ── Table ── */
+    .scroll-hint {
+      display: none;
+      text-align: center;
+      font-size: .73rem;
+      color: var(--text-muted);
+      padding: 7px;
+      background: var(--gray-light);
+      border-bottom: 1px solid var(--border);
+    }
+    .tbl-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+    thead {
+      background: #fafafa;
+      border-bottom: 2px solid var(--border);
+    }
+    thead th {
+      padding: 11px 16px;
+      text-align: left;
+      font-size: .71rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #faf9ff; }
+    tbody td { padding: 12px 16px; vertical-align: middle; }
+
+    .cell-wk {
+      font-weight: 700; color: var(--primary);
+      font-size: .87rem; white-space: nowrap;
+    }
+    .inp-income {
+      width: 130px;
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: .9rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--gray-light);
+      outline: none;
+      transition: border .15s, box-shadow .15s, background .15s;
+    }
+    .inp-income:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    .cell-fixed { color: var(--text-muted); font-size: .9rem; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: .82rem; font-weight: 700;
+      white-space: nowrap;
+    }
+    .b-r1    { background: var(--primary-light); color: var(--primary-text); }
+    .b-r2    { background: var(--warning-light);  color: #78350f; }
+    .b-r3,
+    .b-empty { background: var(--gray-light);     color: var(--text-muted); }
+    .rtag    { font-size: .63rem; font-weight: 800; opacity: .65; }
+
+    .cell-me  { font-weight: 700; color: var(--text); }
+    .cell-her { font-weight: 700; color: var(--success); }
+
+    /* ── Delete button ── */
+    .del-btn {
+      background: none; border: none; cursor: pointer;
+      width: 30px; height: 30px; border-radius: 6px;
+      color: var(--text-muted); font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s;
+    }
+    .del-btn:hover { background: var(--danger-light); color: var(--danger); }
+
+    /* ── Empty state ── */
+    .empty { text-align: center; padding: 60px 20px; }
+    .empty-ico { font-size: 2.8rem; margin-bottom: 14px; }
+    .empty p { color: var(--text-muted); font-size: .93rem; line-height: 1.6; }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex; gap: 18px; flex-wrap: wrap;
+      padding: 12px 22px;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+    }
+    .leg-item {
+      display: flex; align-items: center; gap: 7px;
+      font-size: .76rem; color: var(--text-muted);
+    }
+    .leg-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(90px);
+      background: #1f2937; color: #fff;
+      padding: 11px 26px;
+      border-radius: 100px;
+      font-size: .87rem; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,.22);
+      opacity: 0;
+      transition: transform .28s ease, opacity .28s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 9999;
+    }
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: .77rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .btns { width: 100%; }
+      .btn  { flex: 1; justify-content: center; }
+      .scroll-hint { display: block; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Language toggle -->
+  <div class="header-top">
+    <button class="btn-lang" id="lang-btn" onclick="toggleLang()">🇬🇧 EN</button>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <span class="hdr-emoji">💛</span>
+    <h1 data-i18n="headerTitle">Finanzas Semanales</h1>
+    <p data-i18n="headerSub">Gestión compartida · Período de maternidad</p>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-ico ico-v">📅</div>
+      <div>
+        <div class="stat-lbl" data-i18n="statWeeks">Semanas</div>
+        <div class="stat-val" id="s-weeks">0</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-ico ico-g">📊</div>
+      <div>
+        <div class="stat-lbl" data-i18n="statAvgMe">Mi Ingreso Prom.</div>
+        <div class="stat-val" id="s-avg-me">—</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-ico ico-y">💸</div>
+      <div>
+        <div class="stat-lbl" data-i18n="statXfer">Total Transferido</div>
+        <div class="stat-val" id="s-xfer">$0.00</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-ico ico-s">💚</div>
+      <div>
+        <div class="stat-lbl" data-i18n="statAvgHer">Saldo Prom. Ella</div>
+        <div class="stat-val" id="s-avg-her">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table card -->
+  <div class="card">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h2 data-i18n="cardTitle">Registro por Semana</h2>
+        <small id="saved-ts"></small>
+      </div>
+      <div class="btns">
+        <button class="btn btn-add"   data-i18n="btnAdd"   onclick="addRow()">+ Agregar Semana</button>
+        <button class="btn btn-save"  data-i18n="btnSave"  onclick="saveData()">💾 Guardar</button>
+        <button class="btn btn-reset" data-i18n="btnReset" onclick="resetTable()">🗑️ Reiniciar</button>
+      </div>
+    </div>
+
+    <div class="scroll-hint" data-i18n="scrollHint">← Deslizá para ver todos los datos →</div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thWeek">Semana</th>
+            <th data-i18n="thMyIncome">Mi Ingreso ($)</th>
+            <th data-i18n="thHerIncome">Ella (Fijo)</th>
+            <th data-i18n="thTransfer">Transferencia</th>
+            <th data-i18n="thMyBal">Mi Saldo Final</th>
+            <th data-i18n="thHerBal">Saldo Final Ella</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+
+    <div class="legend">
+      <div class="leg-item">
+        <div class="leg-dot" style="background:#7c3aed"></div>
+        <span data-i18n="legR1"><strong>R1 — Alto:</strong> Mi ingreso &gt; $1175.15 → transferencia fija $194.00</span>
+      </div>
+      <div class="leg-item">
+        <div class="leg-dot" style="background:#d97706"></div>
+        <span data-i18n="legR2"><strong>R2 — Medio:</strong> $787.10 a $1175.15 → se promedian ambos ingresos</span>
+      </div>
+      <div class="leg-item">
+        <div class="leg-dot" style="background:#9ca3af"></div>
+        <span data-i18n="legR3"><strong>R3 — Bajo:</strong> Mi ingreso &lt; $787.10 → transferencia $0.00</span>
+      </div>
+    </div>
+  </div>
+
+  <footer data-i18n="footer">Datos guardados localmente en este navegador · Ingreso fijo de ella: $787.10/semana</footer>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  /* ── Constants ── */
+  const HER_INCOME     = 787.10;
+  const HIGH_THRESHOLD = 1175.15;
+  const FIXED_XFER     = 194.00;
+  const STORAGE_KEY    = 'finanzas-maternity-v1';
+  const LANG_KEY       = 'finanzas-lang';
+
+  let rows        = [];
+  let lang        = 'es';
+  let lastSavedTs = '';
+
+  /* ── Translations ── */
+  const T = {
+    es: {
+      title:        'Finanzas Semanales',
+      headerTitle:  'Finanzas Semanales',
+      headerSub:    'Gestión compartida · Período de maternidad',
+      statWeeks:    'Semanas',
+      statAvgMe:    'Mi Ingreso Prom.',
+      statXfer:     'Total Transferido',
+      statAvgHer:   'Saldo Prom. Ella',
+      cardTitle:    'Registro por Semana',
+      btnAdd:       '+ Agregar Semana',
+      btnSave:      '💾 Guardar',
+      btnReset:     '🗑️ Reiniciar',
+      scrollHint:   '← Deslizá para ver todos los datos →',
+      thWeek:       'Semana',
+      thMyIncome:   'Mi Ingreso ($)',
+      thHerIncome:  'Ella (Fijo)',
+      thTransfer:   'Transferencia',
+      thMyBal:      'Mi Saldo Final',
+      thHerBal:     'Saldo Final Ella',
+      emptyMsg:     'No hay semanas registradas.<br>Hacé clic en <strong>+ Agregar Semana</strong> para comenzar.',
+      legR1:        '<strong>R1 — Alto:</strong> Mi ingreso &gt; $1175.15 → transferencia fija $194.00',
+      legR2:        '<strong>R2 — Medio:</strong> $787.10 a $1175.15 → se promedian ambos ingresos',
+      legR3:        '<strong>R3 — Bajo:</strong> Mi ingreso &lt; $787.10 → transferencia $0.00',
+      footer:       'Datos guardados localmente en este navegador · Ingreso fijo de ella: $787.10/semana',
+      toastSaved:   '✓ Datos guardados',
+      toastReset:   'Tabla reiniciada',
+      lastSaved:    ts => `Último guardado: ${ts}`,
+      confirmReset: '¿Seguro que querés reiniciar la tabla?\nSe borrarán todos los datos guardados.',
+      locale:       'es-AR',
+      weekCell:     n => `Sem. ${n}`,
+      ariaInput:    n => `Ingreso semana ${n}`,
+      ariaDelete:   n => `Eliminar semana ${n}`,
+      langBtn:      '🇬🇧 EN',
+    },
+    en: {
+      title:        'Weekly Finances',
+      headerTitle:  'Weekly Finances',
+      headerSub:    'Shared management · Maternity leave period',
+      statWeeks:    'Weeks',
+      statAvgMe:    'My Avg. Income',
+      statXfer:     'Total Transferred',
+      statAvgHer:   'Her Avg. Balance',
+      cardTitle:    'Weekly Record',
+      btnAdd:       '+ Add Week',
+      btnSave:      '💾 Save',
+      btnReset:     '🗑️ Reset',
+      scrollHint:   '← Scroll to see all data →',
+      thWeek:       'Week',
+      thMyIncome:   'My Income ($)',
+      thHerIncome:  'Her (Fixed)',
+      thTransfer:   'Transfer',
+      thMyBal:      'My Final Balance',
+      thHerBal:     'Her Final Balance',
+      emptyMsg:     'No weeks recorded.<br>Click <strong>+ Add Week</strong> to get started.',
+      legR1:        '<strong>R1 — High:</strong> My income &gt; $1175.15 → fixed transfer $194.00',
+      legR2:        '<strong>R2 — Mid:</strong> $787.10 to $1175.15 → both incomes averaged',
+      legR3:        '<strong>R3 — Low:</strong> My income &lt; $787.10 → transfer $0.00',
+      footer:       'Data saved locally in this browser · Her fixed income: $787.10/week',
+      toastSaved:   '✓ Data saved',
+      toastReset:   'Table reset',
+      lastSaved:    ts => `Last saved: ${ts}`,
+      confirmReset: 'Are you sure you want to reset the table?\nAll saved data will be deleted.',
+      locale:       'en-US',
+      weekCell:     n => `Wk. ${n}`,
+      ariaInput:    n => `Week ${n} income`,
+      ariaDelete:   n => `Delete week ${n}`,
+      langBtn:      '🇦🇷 ES',
+    }
+  };
+
+  /* ── Apply language to static elements ── */
+  function applyLang() {
+    const t = T[lang];
+    document.title                    = t.title;
+    document.documentElement.lang     = lang;
+    document.getElementById('lang-btn').textContent = t.langBtn;
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (key in t) el.innerHTML = t[key];
+    });
+
+    if (lastSavedTs) {
+      document.getElementById('saved-ts').textContent = t.lastSaved(lastSavedTs);
+    }
+
+    render();
+  }
+
+  function toggleLang() {
+    lang = lang === 'es' ? 'en' : 'es';
+    try { localStorage.setItem(LANG_KEY, lang); } catch {}
+    applyLang();
+  }
+
+  /* ── Core calculation ──
+     Rule 1: income > 1175.15  → fixed transfer $194
+     Rule 2: 787.10 ≤ income ≤ 1175.15 → transfer = (income - 787.10) / 2
+             so both end up at the average of both incomes
+     Rule 3: income < 787.10  → transfer $0
+  */
+  function calc(income) {
+    if (income > HIGH_THRESHOLD) return { xfer: FIXED_XFER, rule: 1 };
+    if (income >= HER_INCOME)    return { xfer: (income - HER_INCOME) / 2, rule: 2 };
+    return { xfer: 0, rule: 3 };
+  }
+
+  /* ── Formatting ── */
+  function fmt(n) {
+    return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function parseIncome(raw) {
+    if (raw === '' || raw == null) return null;
+    const n = parseFloat(raw);
+    return (!isNaN(n) && n >= 0) ? n : null;
+  }
+
+  /* ── Stats bar ── */
+  function updateStats() {
+    const valid = rows.map(r => parseIncome(r.income)).filter(n => n !== null);
+    const count = valid.length;
+
+    document.getElementById('s-weeks').textContent   = rows.length;
+    document.getElementById('s-avg-me').textContent  = count
+      ? fmt(valid.reduce((s, v) => s + v, 0) / count) : '—';
+    document.getElementById('s-xfer').textContent    =
+      fmt(valid.reduce((s, v) => s + calc(v).xfer, 0));
+    document.getElementById('s-avg-her').textContent = count
+      ? fmt(valid.reduce((s, v) => s + (HER_INCOME + calc(v).xfer), 0) / count) : '—';
+  }
+
+  /* ── Partial row update (no full re-render → no focus loss) ── */
+  function updateRowCells(tr, income) {
+    const n   = parseIncome(income);
+    const tds = tr.querySelectorAll('td');
+
+    if (n !== null) {
+      const c      = calc(n);
+      const myBal  = n - c.xfer;
+      const herBal = HER_INCOME + c.xfer;
+      const bClass = c.rule === 1 ? 'b-r1' : c.rule === 2 ? 'b-r2' : 'b-r3';
+
+      tds[3].innerHTML   = `<span class="badge ${bClass}">${fmt(c.xfer)}&thinsp;<span class="rtag">R${c.rule}</span></span>`;
+      tds[4].textContent = fmt(myBal);
+      tds[5].textContent = fmt(herBal);
+      tds[4].className   = 'cell-me';
+      tds[5].className   = 'cell-her';
+    } else {
+      tds[3].innerHTML   = `<span class="badge b-empty">—</span>`;
+      tds[4].textContent = '—';
+      tds[5].textContent = '—';
+      tds[4].className   = 'cell-me';
+      tds[5].className   = 'cell-her';
+    }
+  }
+
+  /* ── Full render (called on add / delete / load / lang change) ── */
+  function render() {
+    const t     = T[lang];
+    const tbody = document.getElementById('tbl-body');
+
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty">
+        <div class="empty-ico">📋</div>
+        <p>${t.emptyMsg}</p>
+      </div></td></tr>`;
+      updateStats();
+      return;
+    }
+
+    tbody.innerHTML = rows.map((r, i) => {
+      const n       = parseIncome(r.income);
+      const safeVal = (r.income != null && r.income !== '') ? String(r.income) : '';
+      let xferHtml  = `<span class="badge b-empty">—</span>`;
+      let meText    = '—', herText = '—';
+
+      if (n !== null) {
+        const c      = calc(n);
+        const bClass = c.rule === 1 ? 'b-r1' : c.rule === 2 ? 'b-r2' : 'b-r3';
+        xferHtml = `<span class="badge ${bClass}">${fmt(c.xfer)}&thinsp;<span class="rtag">R${c.rule}</span></span>`;
+        meText   = fmt(n - c.xfer);
+        herText  = fmt(HER_INCOME + c.xfer);
+      }
+
+      return `<tr data-idx="${i}">
+        <td class="cell-wk">${t.weekCell(r.week)}</td>
+        <td>
+          <input type="number" class="inp-income"
+            min="0" step="0.01" placeholder="0.00"
+            value="${safeVal}"
+            oninput="onInput(${i}, this.value)"
+            aria-label="${t.ariaInput(r.week)}">
+        </td>
+        <td class="cell-fixed">${fmt(HER_INCOME)}</td>
+        <td>${xferHtml}</td>
+        <td class="cell-me">${meText}</td>
+        <td class="cell-her">${herText}</td>
+        <td>
+          <button class="del-btn" onclick="deleteRow(${i})"
+            title="${t.ariaDelete(r.week)}" aria-label="${t.ariaDelete(r.week)}">✕</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    updateStats();
+  }
+
+  /* ── Row actions ── */
+  function addRow() {
+    rows.push({ week: rows.length + 1, income: '' });
+    render();
+    autoSave();
+    requestAnimationFrame(() => {
+      const inputs = document.querySelectorAll('.inp-income');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    });
+  }
+
+  function deleteRow(i) {
+    rows.splice(i, 1);
+    rows.forEach((r, idx) => { r.week = idx + 1; });
+    render();
+    autoSave();
+  }
+
+  function onInput(i, val) {
+    rows[i].income = val;
+    const tr = document.querySelector(`#tbl-body tr[data-idx="${i}"]`);
+    if (tr) updateRowCells(tr, val);
+    updateStats();
+    autoSave();
+  }
+
+  /* ── Persistence ── */
+  function autoSave() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rows)); } catch {}
+  }
+
+  function saveData() {
+    autoSave();
+    lastSavedTs = new Date().toLocaleTimeString(T[lang].locale, { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('saved-ts').textContent = T[lang].lastSaved(lastSavedTs);
+    showToast(T[lang].toastSaved);
+  }
+
+  function resetTable() {
+    if (!confirm(T[lang].confirmReset)) return;
+    rows = [];
+    lastSavedTs = '';
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    document.getElementById('saved-ts').textContent = '';
+    render();
+    showToast(T[lang].toastReset);
+  }
+
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) rows = JSON.parse(raw);
+    } catch {}
+    try {
+      const savedLang = localStorage.getItem(LANG_KEY);
+      if (savedLang === 'en' || savedLang === 'es') lang = savedLang;
+    } catch {}
+  }
+
+  /* ── Toast ── */
+  let toastTimer = null;
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+  }
+
+  /* ── Init ── */
+  loadData();
+  applyLang();
+  if (rows.length === 0) addRow();
+</script>
+</body>
+</html>
